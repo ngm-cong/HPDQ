@@ -19,8 +19,11 @@ $dirPath = "C:\FTP"
 $ftpPort = 21
 $version = "1.0.0"
 
+$system32Path = Join-Path -Path $env:windir -ChildPath "System32"
+$appcmd = "$system32Path\inetsrv\AppCmd.exe";
+
 # Check if the FTP site already exists
-if (& ".\inetsrv\AppCmd.exe" list site $siteName) {
+if (& $appcmd list site $siteName) {
     Write-Host "The FTP site '$siteName' already exists. Skipping creation." -ForegroundColor Yellow
 }
 else {
@@ -47,7 +50,7 @@ foreach ($siteName in $projects) {
 	}
 	$sitePort += 1
 	# Check if the FTP site already exists
-	if (& ".\inetsrv\AppCmd.exe" list site $siteName) {
+	if (& $appcmd list site $siteName) {
 		Write-Host "Website '$siteName' already exists. Skipping creation." -ForegroundColor Yellow
 	}
 	else {
