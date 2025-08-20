@@ -43,11 +43,29 @@ else {
     Write-Host "Đang cấu hình quyền Read & Write cho nhóm 'BUILTIN\Administrators'..."
     
     # Sử dụng Add-WebConfiguration để thêm quy tắc ủy quyền
-    Add-WebConfiguration -pspath 'MACHINE/WEBROOT/APPHOST' `
-                         -Filter "system.ftpserver/security/authorization" `
-                         -Value @{accessType="Allow"; users="BUILTIN\Administrators"; permissions="Read, Write"}
-                         
+    # Add-WebConfiguration -pspath 'MACHINE/WEBROOT/APPHOST' `
+    #                      -Filter "system.ftpserver/security/authorization" `
+    #                      -Value @{accessType="Allow"; users="BUILTIN\Administrators"; permissions="Read, Write"}
+                       
     Write-Host "Đã cấu hình quyền thành công."
+	
+	$ruleName = "Allow Inbound Port FTP"
+	$port = 21
+	$protocol = "TCP"
+
+	Write-Host "Đang tạo quy tắc tường lửa để mở port $port ($protocol)..."
+
+	try {
+		# Kiểm tra xem quy tắc đã tồn tại chưa để tránh tạo trùng
+		if (-not (Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue)) {
+			New-NetFirewallRule -DisplayName $ruleName -Direction Inbound -Action Allow -Protocol $protocol -LocalPort $port
+			Write-Host "✅ Quy tắc '$ruleName' đã được tạo thành công." -ForegroundColor Green
+		} else {
+			Write-Host "ℹ️ Quy tắc '$ruleName' đã tồn tại. Không cần tạo lại." -ForegroundColor Yellow
+		}
+	} catch {
+		Write-Host "❌ Đã xảy ra lỗi khi tạo quy tắc tường lửa: $($_.Exception.Message)" -ForegroundColor Red
+	}
 }
 
 $projects = @("HPDQ.WebSupport.API", "HPDQ.WebSupport.SignalR", "HPDQ.WebSupport")
