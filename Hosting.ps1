@@ -1,0 +1,66 @@
+﻿# --- Script & D:\Hosting.ps1 ---
+# Disable-WindowsOptionalFeature -Online -FeatureName IIS-WebServerRole, IIS-FTPServer, IIS-ManagementConsole -Remove
+# Enable-WindowsOptionalFeature -Online -FeatureName IIS-WebServerRole, IIS-FTPServer, IIS-ManagementConsole
+
+# Check for administrator privileges
+if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Write-Host "Error: This script must be run as an administrator." -ForegroundColor Red
+    return
+}
+
+# Import the WebAdministration module
+try {
+    Import-Module WebAdministration -ErrorAction Stop
+}
+catch {
+    Write-Host "Error: The WebAdministration module could not be loaded. Please ensure the IIS Management Tools are installed." -ForegroundColor Red
+    return
+}
+
+# Define variables
+$siteName = "DEVFTPsite"
+$dirPath = "C:\FTP"
+$ftpPort = 21
+$version = "1.0.0"
+
+# Check if the FTP site already exists
+if (& ".\inetsrv\AppCmd.exe" list site $siteName) {
+    Write-Host "The FTP site '$siteName' already exists. Skipping creation." -ForegroundColor Yellow
+}
+else {
+    Write-Host "The FTP site '$siteName' does not exist. Creating now..." -ForegroundColor Green
+
+    # Ensure the physical directory exists
+    if (-not (Test-Path $dirPath)) {
+        New-Item -Path $dirPath -ItemType Directory -Force | Out-Null
+        Write-Host "Created physical directory: $dirPath" -ForegroundColor Cyan
+    }
+
+    # Create the new FTP site
+    New-WebFtpSite -Name $siteName -Port $ftpPort -PhysicalPath $dirPath | Out-Null
+    Write-Host "Successfully created FTP site '$siteName' on port $ftpPort." -ForegroundColor Green
+}
+
+$projects = @("HPDQ.WebSupport.API", "HPDQ.WebSupport.SignalR", "HPDQ.WebSupport")
+$sitePort = 8080
+foreach ($siteName in $projects) {
+	$dirPath = "C:\IIS\$siteName"
+	if (-not (Test-Path $dirPath)) {
+		New-Item -Path $dirPath -ItemType Directory -Force | Out-Null
+		Write-Host "Created physical directory: $dirPath" -ForegroundColor Cyan
+	}
+	$sitePort += 1
+	# Check if the FTP site already exists
+	if (& ".\inetsrv\AppCmd.exe" list site $siteName) {
+		Write-Host "Website '$siteName' already exists. Skipping creation." -ForegroundColor Yellow
+	}
+	else {
+		New-WebAppPool -Name $siteName | Out-Null
+		New-WebSite -Name $siteName -Port $sitePort -PhysicalPath $dirPath -ApplicationPool $siteName | Out-Null
+		Write-Host "Website '$siteName' has been created successfully." -ForegroundColor Green
+	}
+}
+
+if (Test-Path -Path "C:\FTP\data\$version.zip") {
+	Write-Host "Found '$version'." -ForegroundColor Green
+}
