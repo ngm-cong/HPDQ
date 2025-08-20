@@ -1,4 +1,8 @@
-﻿# Lấy đường dẫn đầy đủ của thư mục chứa script
+﻿param(
+    [string]$ftpPassword
+)
+
+# Lấy đường dẫn đầy đủ của thư mục chứa script
 $scriptPath = $PSScriptRoot
 
 # Lấy ký tự ổ đĩa (ví dụ: C, D)
@@ -30,9 +34,9 @@ Compress-Archive -Path $outputPath -DestinationPath "$compressPath"
 Remove-Item -Path $outputPath -Recurse -Force
 
 # FTP Server Details
-$ftpServer = "ftp://localhost/data"
-$ftpUsername = "admin"
-$ftpPassword = "password"
+$ftpServer = "ftp://10.192.39.52/data"
+$ftpUsername = "administrator"
+# $ftpPassword = "password"
 $remoteFile = "$ftpServer/${version}.zip"
 
 # Create an FtpWebRequest object

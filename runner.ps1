@@ -13,7 +13,7 @@ try {
     Invoke-WebRequest -Uri $rawUrl -OutFile $outputPath
 
     # Chạy script đã tải về
-    & $outputPath
+    & $outputPath @PSBoundParameters
 
 } catch {
     Write-Host "Đã xảy ra lỗi: $($_.Exception.Message), $rawUrl"
