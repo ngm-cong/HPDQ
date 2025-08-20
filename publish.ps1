@@ -38,6 +38,7 @@ $ftpServer = "ftp://10.192.39.52/data"
 $ftpUsername = "administrator"
 # $ftpPassword = "password"
 $remoteFile = "$ftpServer/${version}.zip"
+# PCNTT-SERVER-PM\Administrators
 
 # Create an FtpWebRequest object
 $ftpRequest = [System.Net.FtpWebRequest]::Create($remoteFile)
@@ -45,6 +46,7 @@ $ftpRequest.Method = [System.Net.WebRequestMethods+Ftp]::UploadFile
 $ftpRequest.Credentials = New-Object System.Net.NetworkCredential($ftpUsername, $ftpPassword)
 $ftpRequest.UseBinary = $true # For binary files like zips, images, etc.
 $ftpRequest.EnableSsl = $false # Use this for secure FTPS
+$ftpRequest.UsePassive = $false # Quan trọng: Kích hoạt chế độ Passive Mode để kết nối qua tường lửa
 
 # Read the file content
 $fileContent = [System.IO.File]::ReadAllBytes($compressPath)

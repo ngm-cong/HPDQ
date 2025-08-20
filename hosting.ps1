@@ -22,6 +22,7 @@ $version = "1.0.0"
 $system32Path = Join-Path -Path $env:windir -ChildPath "System32"
 $appcmd = "$system32Path\inetsrv\AppCmd.exe";
 
+# & "C:\Windows\System32\inetsrv\AppCmd.exe" delete site /site.name:DEVFTPsite
 # Check if the FTP site already exists
 if (& $appcmd list site $siteName) {
     Write-Host "The FTP site '$siteName' already exists. Skipping creation." -ForegroundColor Yellow
@@ -88,6 +89,42 @@ foreach ($siteName in $projects) {
 	}
 }
 
-if (Test-Path -Path "C:\FTP\data\$version.zip") {
-	Write-Host "Found '$version'." -ForegroundColor Green
+$ruleName = "Allow Inbound Port WebSupport"
+$ports = "8081-8083"
+$protocol = "TCP"
+
+Write-Host "Đang tạo quy tắc tường lửa để mở port $port ($protocol)..."
+
+try {
+	# Kiểm tra xem quy tắc đã tồn tại chưa để tránh tạo trùng
+	if (-not (Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue)) {
+		New-NetFirewallRule -DisplayName $ruleName -Direction Inbound -Action Allow -Protocol $protocol -LocalPort $ports -Enabled True
+		Write-Host "✅ Quy tắc '$ruleName' đã được tạo thành công." -ForegroundColor Green
+	} else {
+		Write-Host "ℹ️ Quy tắc '$ruleName' đã tồn tại. Không cần tạo lại." -ForegroundColor Yellow
+	}
+} catch {
+	Write-Host "❌ Đã xảy ra lỗi khi tạo quy tắc tường lửa: $($_.Exception.Message)" -ForegroundColor Red
+}
+
+# Đường dẫn tới file ZIP cần giải nén
+$zipFile = "C:\FTP\data\$version.zip"
+if (Test-Path -Path $zipFile) {
+	foreach ($siteName in $projects) {
+		Stop-WebAppPool -Name "$siteName"
+		Stop-Website -Name "$siteName"
+	}
+	
+	# Đường dẫn tới thư mục đích (nơi bạn muốn giải nén)
+	$destination = "C:\IIS"
+
+	# Thực thi lệnh giải nén
+	Expand-Archive -Path $zipFile -DestinationPath $destination -Force
+
+	Write-Host "Giải nén thành công!"
+	
+	foreach ($siteName in $projects) {
+		Start-WebAppPool -Name "$siteName"
+		Start-Website -Name "$siteName"
+	}
 }
