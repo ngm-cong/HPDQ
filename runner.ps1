@@ -16,5 +16,5 @@ try {
     & $outputPath
 
 } catch {
-    Write-Host "Đã xảy ra lỗi: $($_.Exception.Message)"
+    Write-Host "Đã xảy ra lỗi: $($_.Exception.Message), $rawUrl"
 }
