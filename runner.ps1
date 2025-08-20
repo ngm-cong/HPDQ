@@ -3,7 +3,7 @@
 )
 
 # Tải script về máy
-$rawUrl = "https://raw.githubusercontent.com/ngm-cong/HPDQ/main/$FileName.ps1"
+$rawUrl = "https://raw.githubusercontent.com/ngm-cong/HPDQ/main/$FileName.ps1?t=$(Get-Date -Format 'yyyyMMddHHmmssffff')"
 $outputPath = "C:\temp\$FileName.ps1"
 
 try {

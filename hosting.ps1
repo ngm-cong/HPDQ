@@ -38,6 +38,16 @@ else {
     # Create the new FTP site
     New-WebFtpSite -Name $siteName -Port $ftpPort -PhysicalPath $dirPath | Out-Null
     Write-Host "Successfully created FTP site '$siteName' on port $ftpPort." -ForegroundColor Green
+	
+	# 3. Cấu hình quyền cho người dùng Administrator
+    Write-Host "Đang cấu hình quyền Read & Write cho nhóm 'BUILTIN\Administrators'..."
+    
+    # Sử dụng Add-WebConfiguration để thêm quy tắc ủy quyền
+    Add-WebConfiguration -pspath 'MACHINE/WEBROOT/APPHOST' `
+                         -Filter "system.ftpserver/security/authorization" `
+                         -Value @{accessType="Allow"; users="BUILTIN\Administrators"; permissions="Read, Write"}
+                         
+    Write-Host "Đã cấu hình quyền thành công."
 }
 
 $projects = @("HPDQ.WebSupport.API", "HPDQ.WebSupport.SignalR", "HPDQ.WebSupport")
