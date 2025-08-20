@@ -1,8 +1,4 @@
-﻿# --- Script & D:\Hosting.ps1 ---
-# Disable-WindowsOptionalFeature -Online -FeatureName IIS-WebServerRole, IIS-FTPServer, IIS-ManagementConsole -Remove
-# Enable-WindowsOptionalFeature -Online -FeatureName IIS-WebServerRole, IIS-FTPServer, IIS-ManagementConsole
-
-# Check for administrator privileges
+﻿# Check for administrator privileges
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     Write-Host "Error: This script must be run as an administrator." -ForegroundColor Red
     return
